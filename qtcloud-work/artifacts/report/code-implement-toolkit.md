@@ -84,3 +84,16 @@
 - 最后是照着能用的那份抄：`quanttide-data-toolkit` 与 `quanttide-execute-toolkit` 用的是同一个 action（`k-paxian/dart-package-publisher`，`with: credentialJson:`），凭证落点交给它，一次就过。
 
 **结论（这一节）**：手写凭证落点这件事，别再手写——组织里已经有能用的写法，抄它。
+
+## 替换
+
+这一步还没走完，先记这一轮的进度：两侧都引上了**发布出去的版本**，并把**信封**这一个领域模型先换过去。
+
+| 侧 | 依赖（版本号，不是本地路径） | 换掉的 | 门禁 |
+|---|---|---|---|
+| 命令行 | `quanttide-work = "0.1.0-alpha.5"`（crates.io） | `src/outcome.rs` 变成 `pub use quanttide_work::envelope::Outcome as Result;` | clippy `-D warnings` 干净、`cargo test --locked` 过 |
+| studio | `quanttide_work: ^0.1.0-alpha.10`（pub.dev） | `lib/core/outcome.dart` 变成引出工具箱那份，外加一个编码函数 | `flutter analyze` 干净、88 个测试过 |
+
+**行为一字未改**，尺子为证：24 条全一致、0 条没对上（比抽取前还多了几条——这一轮新加的工作流与任务也进了尺子的清单）。
+
+还差的（下一轮接着换，两侧各自那份删掉、改成引用工具箱）：定义的字段表与校验、`Step` / `Workflow` 视图、定义核对、机械判据、流水与「走过」的算法、给 AI 的两段话。
