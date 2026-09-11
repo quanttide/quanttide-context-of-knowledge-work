@@ -96,4 +96,14 @@
 
 **行为一字未改**，尺子为证：24 条全一致、0 条没对上（比抽取前还多了几条——这一轮新加的工作流与任务也进了尺子的清单）。
 
-还差的（下一轮接着换，两侧各自那份删掉、改成引用工具箱）：定义的字段表与校验、`Step` / `Workflow` 视图、定义核对、机械判据、流水与「走过」的算法、给 AI 的两段话。
+第二轮换掉的是**重复的逻辑**（不是形状，数据与文件格式一个字没动）：
+
+| 换掉什么 | 命令行这边 | 换成 |
+|---|---|---|
+| 字段表与取值 | `AGENT` / `HUMAN` / `RULE` 等常量 | `pub use quanttide_work::definition::{AGENT, HUMAN, RULE}` |
+| 定义校验（约 120 行、逐条报错文字） | `load()` 里手写那一大段 | `quanttide_work::definition::validate`（YAML 转成 JSON 递进去，报错文字一字不差） |
+| 定义核对 | `check()` / `describe()` / `all_ok()` / `looks_like_section()` / `expand_placeholders()` | 工具箱同一批函数（「路径在不在」用闭包传工作区根） |
+
+净删约 200 行。**行为一字未改**：clippy 干净、`cargo test --locked` 12 组全过、尺子 24 条全一致。
+
+还差的（下一轮）：`Step` / `Workflow` 那两个视图类（两侧同名，但一边吃 YAML、一边吃 JSON，要动得先把命令行这边挪到 JSON 上）、机械判据、流水与「走过」的算法、给 AI 的两段话；以及 Dart 那一侧的同样五样。
