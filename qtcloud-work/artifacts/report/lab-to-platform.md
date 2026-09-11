@@ -164,18 +164,18 @@ schema 约束（`workflow.py load`，不认识的字段报错）：`rule` 必须
 
 ### 测试
 
-测试落在 `apps/qtcloud-work/src/cli/tests/`，一个场景一个文件，共用的夹具在 `tests/support/mod.rs`（临时工作区、数据仓、工作流目录、`pi` 桩与跑命令的壳）：`scenario_start_task.rs`、`scenario_agent_step.rs`、`scenario_three_kinds_of_criteria.rs`、`scenario_multi_step_context.rs`、`scenario_context_into_material.rs`、`scenario_human_step.rs`；加一个场景就加一个文件，文件之间不互相依赖。测试跑的是编出来的 `qtcloud-work` 可执行文件，用临时工作区与临时数据仓（数据仓与工作流目录故意分开，好让「运行上下文随任务记着」这条真被验到），不碰真仓库；交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型。
+测试落在 `apps/qtcloud-work/src/cli/tests/`，一个场景一个文件，共用的夹具按 Rust 惯例放 `tests/common/mod.rs`（临时工作区、数据仓、工作流目录、`pi` 桩与跑命令的壳）：`task_start.rs`、`agent_step.rs`、`criteria.rs`、`run_context.rs`、`material_intake.rs`、`human_step.rs`——文件名与被测对象同名，不带前缀，测试函数名是场景本身的说法；加一个场景就加一个文件，文件之间不互相依赖。测试跑的是编出来的 `qtcloud-work` 可执行文件，用临时工作区与临时数据仓（数据仓与工作流目录故意分开，好让「运行上下文随任务记着」这条真被验到），不碰真仓库；交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型。
 
 按场景命名与分解：一个测试一个场景，同类场景合在一个测试里（正例与它的负例同测，免得负例在实现缺席时单独变绿）。每个测试上面一行写出来处：
 
 | 出处 | 测试 | 场景 |
 | :-- | :-- | :-- |
-| `// 用例：一` | `scenario_start_task_lays_down_files_and_context` | 起一件任务：任务、报告、日志三样落盘，运行上下文记进任务文件；工作流不在就挡 |
-| `// 用例：一` | `scenario_take_one_agent_step_through_pi` | 走一步（agent）：交给 `pi`、核 rule 判据、记一笔、写报告；`pi` 失败那一次不算过 |
-| `// 用例：二` | `scenario_one_step_with_three_kinds_of_criteria` | 一步挂三类判据：rule 当场核、agent 照说明审、human 原样进闸门 |
-| `// 用例：三` | `scenario_three_ai_steps_with_recorded_context` | 三步依次走完；不写 `--workflows` 也认得出定义在哪 |
-| `// 用例：四` | `scenario_context_entries_into_material` | 粗加工落到 `materials/<分类>/index.md`，两道 human 闸门进报告 |
-| `// 用例：五` | `scenario_human_step_recorded_by_hand` | human 步骤不抢着做，`--done` 记一笔，`--note` 原话进流水 |
+| `// 用例：一` | `start_task_lays_down_files_and_context` | 起一件任务：任务、报告、日志三样落盘，运行上下文记进任务文件；工作流不在就挡 |
+| `// 用例：一` | `take_one_agent_step_through_pi` | 走一步（agent）：交给 `pi`、核 rule 判据、记一笔、写报告；`pi` 失败那一次不算过 |
+| `// 用例：二` | `one_step_with_three_kinds_of_criteria` | 一步挂三类判据：rule 当场核、agent 照说明审、human 原样进闸门 |
+| `// 用例：三` | `three_ai_steps_with_recorded_context` | 三步依次走完；不写 `--workflows` 也认得出定义在哪 |
+| `// 用例：四` | `context_entries_into_material` | 粗加工落到 `materials/<分类>/index.md`，两道 human 闸门进报告 |
+| `// 用例：五` | `human_step_recorded_by_hand` | human 步骤不抢着做，`--done` 记一笔，`--note` 原话进流水 |
 
 ### 双向对账
 
@@ -200,12 +200,12 @@ error: unexpected argument '--root' found
 Usage: qtcloud-work [OPTIONS] <COMMAND>
 ...
 failures:
-    scenario_context_entries_into_material
-    scenario_human_step_recorded_by_hand
-    scenario_one_step_with_three_kinds_of_criteria
-    scenario_start_task_lays_down_files_and_context
-    scenario_take_one_agent_step_through_pi
-    scenario_three_ai_steps_with_recorded_context
+    context_entries_into_material
+    human_step_recorded_by_hand
+    one_step_with_three_kinds_of_criteria
+    start_task_lays_down_files_and_context
+    take_one_agent_step_through_pi
+    three_ai_steps_with_recorded_context
     usecase_4_context_into_material
     usecase_5_human_steps_recorded_by_hand
 test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out
