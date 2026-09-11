@@ -45,7 +45,7 @@
 
 ## 契约
 
-契约写在**两侧共用的向量**里（按仓库惯例放在 ）：`packages/quanttide-work-toolkit/tests/contract/*.json` 十份，一对输入与期望输出；Rust 的 `packages/rust/tests/contract.rs` 与 Dart 的 `packages/dart/test/contract_test.dart` 读的是同一批文件，跑 `sh packages/quanttide-work-toolkit/scripts/contract.sh` 两边各跑一遍。
+契约写在**两侧共用的向量**里（按仓库惯例放在 `tests/contract/`）：
 
 | 向量 | 管什么 |
 |---|---|
