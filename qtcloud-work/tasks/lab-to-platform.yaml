@@ -1,0 +1,19 @@
+name: lab-to-platform
+start: 2026-09-11 16:33
+workflow: lab-to-platform
+root: /home/iguo/repos/quanttide/domains/quanttide-work
+data: data/context/qtcloud-work
+workflows: data/profile/iGuo/workflows
+log:
+- at: 2026-09-11 16:35
+  step: outline
+  detail: AI 执行：已把这份规格要写的动作、字段、判据、用例逐条列进报告 `data/context/qtcloud-work/artifacts/report/lab-to-pl
+  ok: true
+- at: 2026-09-11 16:38
+  step: doc
+  detail: AI 执行：三部分文档已按清单重写，落在 `apps/qtcloud-work/src/cli/docs/`：`user-guide/index.md`（怎么用，含五条做过
+  ok: true
+- at: 2026-09-11 16:39
+  step: doc·审
+  detail: AI 审查（同一模型）：清单里的条目都落到了文档里，用例都出自做过的真事→✓
+  ok: true
