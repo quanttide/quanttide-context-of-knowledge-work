@@ -22,6 +22,14 @@ log:
   step: publish-dart
   detail: Dart 条线：0.1.0-alpha.10 → dart/v0.1.0-alpha.10，release-dart success，pub.dev 上 quanttide_work 在；凭证落点改成照抄 data-toolkit 那条 action
   ok: true
+- at: 2026-09-12 03:04
+  step: adopt
+  detail: 两侧剩下的四样全交给工具箱（视图类、机械判据、流水算法、两段话）；同名模型到此为止；命令行 clippy+12 组测试、工作室 analyze+88 测试、尺子 24 条全一致
+  ok: true
+- at: 2026-09-12 03:04
+  step: conclude
+  detail: 三行结论 + 三件拿不准的（双实现防漂的规矩、什么该进工具箱、工具箱的版本节奏）已写进报告
+  ok: true
 gates:
 - 创始人定抽取范围：哪些进 toolkit，哪些留在各自包里
 - 每一项都写了「完全相同 / 只差写法 / 只是同名不同义」三种里的哪一种，并指出各自在哪一行；没有「（待查）」
@@ -31,6 +39,9 @@ gates:
 - 版本是这一轮新落的（不是拿旧版本充数）；这个包在 crates.io 上查得到
 - 创始人放行 dart 这次发布（定了版本号就不再改）
 - 版本是这一轮新落的（不是拿旧版本充数）；这个包在 pub.dev 上查得到
+- 创始人确认可以合并：抽取这件事值不值得（多一层依赖换掉两份重复）
+- 两侧不再留同名模型（都指到 toolkit）；抽取过程中没有顺手改行为，尺子与两侧门禁都能证明
+- 三行说得清抽了什么、共用到什么程度、还差什么；拿不准的单列，不混在结论里
 products: {}
 root: /home/iguo/repos/quanttide/domains/quanttide-work
 data: data/context/qtcloud-work

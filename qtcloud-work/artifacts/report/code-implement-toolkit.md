@@ -120,3 +120,30 @@
 | 契约 | 向量文件仍是 JSON（那是夹具），进工具箱前转成 YAML 值；两侧跑同一批，结论一致 |
 
 **行为一字未改**：clippy `--locked` 干净、`cargo test --locked` 12 组全过、`cargo fmt --check` 干净、尺子 24 条全一致。
+
+### 第四轮：剩下的四样也交出去（这一步做完）
+
+| 换掉什么 | 命令行 | 工作室 |
+|---|---|---|
+| 步骤与定义的视图 | `pub use quanttide_work::definition::Step`；命令行的 `Workflow` 改名 **`WorkflowFile`**（只管文件位置与读写），内容那一层每次向工具箱要一份 | 同样：引出工具箱的 `Step` / `Workflow`，本地的改名 `WorkflowFile` |
+| 机械判据的翻译 | `pub use quanttide_work::criteria::{RuleItem as Item, RuleKind as Kind, items_of}` | `export … show RuleKind, RuleItem, descriptionOf, itemsOf` |
+| 流水与「走过」的算法 | `tasklog::{done, next_step, state_line}` | 同一个包（用前缀引入，免得与本地名字撞） |
+| 给 AI 的两段话 | `prompts::{prompt_for, judge_prompt}`，现场由命令行递一个 `Facts` 进去 | 同一个包，同样自己拼 `Facts` |
+
+**同名模型到此为止**：两侧都不再有自写的信封、字段表、校验、步骤视图、核对、判据翻译、走过算法、两段话——各留一个 `WorkflowFile`（那个只管文件，工具箱不管文件），名字也不再与工具箱撞。
+
+换的过程中清掉的死代码与未用 import 一共十几处，全部由门禁抓出来（clippy `-D warnings`、`flutter analyze`），一条没漏。
+
+**验证**：命令行 clippy `--locked` 干净、`cargo test --locked` 12 组全过；工作室 `flutter analyze` 干净、88 个测试全过；**尺子 24 条全一致、0 条没对上**——换的是位置，行为一字未改。
+
+## 结论
+
+抽取做完了：命令行与工作室里原本各一份的领域模型——信封、工作流定义的字段表与校验、步骤与判据的视图、定义核对、机械判据的翻译、流水与「走过」的算法、给 AI 的两段话——现在都在工具箱 `quanttide-work-toolkit` 里，Rust 与 Dart 各一份，两侧只留引用。
+两侧现在真的在消费它：命令行依赖 `quanttide-work = "0.1.0-alpha.6"`（crates.io）、工作室依赖 `quanttide_work: ^0.1.0-alpha.10`（pub.dev），两条发布线各发各的。
+契约由两侧共用的 10 份用例向量把着（`tests/contract/`），加上那把尺子（24 条命令算出来的结果一致——ok / columns / rows，给人看的话各写各的）——抽取过程中尺子一次都没红过。
+
+仍拿不准的：
+
+- **两边长期双实现怎么防漂**：现在靠同一批向量加一把尺子；「改行为先改哪边」还没定规矩（这一轮的顺序是「先改工具箱、发版、两侧跟」，可以定成规矩）；
+- **什么该进工具箱**：这一轮进去的是纯逻辑；文件读写、YAML 解析、起进程留在各自包里。下一样要抽的时候，判据是「两侧是不是同一套意义」，不是「名字一样」；
+- **工具箱的版本节奏**：现在跟着改动走（这一轮 Rust 连发 alpha.5、alpha.6）；要不要跟两侧的版本对齐，没定。
