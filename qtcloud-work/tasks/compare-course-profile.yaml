@@ -1,0 +1,20 @@
+name: compare-course-profile
+start: 2026-09-10 22:31
+workflow: compare-course-profile
+log:
+- at: 2026-09-10 22:32
+  step: locate
+  detail: 两边档案找齐：个人草稿 iGuo/materials/course/（3 篇 MD）；课程研发档案 ../../../quanttide-course/data/profile/（3 门课，MD+JSON）；两条判据命中
+  ok: true
+- at: 2026-09-10 22:32
+  step: locate
+  detail: AI 执行：locate 一步完成：两边档案都找齐并写进报告——个人课程草稿在 `iGuo/materials/course/`（index、knowledge-work、
+  ok: true
+- at: 2026-09-10 22:32
+  step: compare
+  detail: AI 执行：compare 一步完成：在报告 `iGuo/artifacts/report/compare-course-profile.md` 新增「## 比对」一节，按
+  ok: true
+- at: 2026-09-10 22:33
+  step: conclude
+  detail: AI 执行：一句话：我把差异处置结论写进了报告「结论」一节，等创始人就回流与并法点头。
+  ok: true

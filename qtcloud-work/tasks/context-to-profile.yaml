@@ -1,0 +1,32 @@
+name: context-to-profile
+start: 2026-09-11 15:46
+workflow: context-to-profile
+log:
+- at: 2026-09-11 15:47
+  step: pull
+  detail: AI 执行：完成 pull 一步：语境仓已拉到最新（`git -C ../context pull --ff-only` 返回「已经是最新的」），读了一遍唯一的日期文件 `
+  ok: true
+- at: 2026-09-11 15:47
+  step: classify
+  detail: AI 执行：classify 一步完成：4 条语境条目逐条认了归属（1→智能体 agent、2→基础设施 infra、3→沟通 connect、4→知识工作 work，均据
+  ok: true
+- at: 2026-09-11 15:48
+  step: classify·审
+  detail: AI 审查（同一模型）：每条都有着落——进了某个分类，或列在「拿不准」里→✓
+  ok: true
+- at: 2026-09-11 15:49
+  step: coarsen
+  detail: AI 执行：我把 4 条语境条目粗加工进材料——第 1 条「记忆库导出」补写进 `iGuo/materials/agent/index.md`，第 2、3、4 条（计费监控
+  ok: true
+- at: 2026-09-11 15:49
+  step: coarsen·审
+  detail: AI 审查（同一模型）：每条都进了对应分类，写法平实，没有「不是…而是…」式表达→✓
+  ok: true
+- at: 2026-09-11 15:50
+  step: move-out
+  detail: AI 执行：move-out 完成：把 4 条已进材料的语境条目从 `data/context/iGuo/2026-09-11.md` 删净（文件留空，目录与 `.gitk
+  ok: true
+- at: 2026-09-11 15:52
+  step: commit
+  detail: AI 执行：完成 `commit` 一步：材料与产物在档案仓 `data/profile`（`dbbce40`）、迁出在语境仓 `data/context`（`dc6f1b
+  ok: true
