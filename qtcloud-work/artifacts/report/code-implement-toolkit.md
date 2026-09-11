@@ -107,3 +107,16 @@
 净删约 200 行。**行为一字未改**：clippy 干净、`cargo test --locked` 12 组全过、尺子 24 条全一致。
 
 还差的（下一轮）：`Step` / `Workflow` 那两个视图类（两侧同名，但一边吃 YAML、一边吃 JSON，要动得先把命令行这边挪到 JSON 上）、机械判据、流水与「走过」的算法、给 AI 的两段话；以及 Dart 那一侧的同样五样。
+
+### 第三轮：定义那一类模型改吃 YAML（一次纠正）
+
+我上一轮写「要合一只需把命令行整体挪到 JSON 上」——方向错了。工作流定义**本来就是 YAML**，抽取不该把它挤成 JSON。改法是反过来的：工具箱里**定义这一类模型改吃 YAML 值**（`serde_yaml::Value`），与 Dart 侧的 Map / List 天然对得上；**信封仍然是 JSON**——那是给窗口与命令行的输出格式，跟定义不是一回事。
+
+| 改了什么 | 结果 |
+|---|---|
+| `packages/rust/src/{definition,criteria,tasklog,prompts}.rs` | 入参从 `serde_json::Value` 换成 `serde_yaml::Value` |
+| 工具箱 Rust 线 | 破坏性改动 → 按惯例发新版：`rust/v0.1.0-alpha.6`（release-rust success，crates.io 上线） |
+| 命令行 | 依赖跟到 `quanttide-work = "0.1.0-alpha.6"`，并把上一轮那个 YAML→JSON 转换删掉——现在两边直接传 YAML 值 |
+| 契约 | 向量文件仍是 JSON（那是夹具），进工具箱前转成 YAML 值；两侧跑同一批，结论一致 |
+
+**行为一字未改**：clippy `--locked` 干净、`cargo test --locked` 12 组全过、`cargo fmt --check` 干净、尺子 24 条全一致。
