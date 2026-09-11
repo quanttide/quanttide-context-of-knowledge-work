@@ -261,3 +261,11 @@ src/
 ```
 
 `report.rs` 与 `records.rs` 不再存在：结果类型独立成 `outcome.rs`（动作层不依赖入口模块），各动作归到它操作的对象旁，记录的段位与骨架并进任务模块。改完四道门禁全绿：`cargo test` 七目标、`cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`sh scripts/validate-usecases.sh`。
+
+## 拿真事试了一遍（界面评审）
+
+用平台侧的 `qtcloud-work` 跑了一条真活：评审 `data/materials/qtcloud-human-studio.png`（量潮人事「招聘筛选网关」的界面截图）。工作流写在开发数据仓 `data/workflows/review-ui-shot.yaml`，产物落在 `data/artifacts/report/review-ui-shot-v2.md`。
+
+第一版报告（按旧流程）是「清点 → 15 条并列评审 → 8 条建议 → 结论」，人的第一眼感受「信息混乱」没被体现。改后的流程按人读的顺序排：人先写一句「第一眼」→ 智能体清点（只清点不下判断）→ 一句主诊断＋至多五处证据（带图上坐标）→ 旁枝当附录 → 建议按影响排序并标影响面与代价 → 结论三行（是什么 / 问题在哪 / 先改什么）＋一句话复述与第一眼对照 → 人拍板。判据里加了机械的「小节顺序」核对（比较行号）。
+
+顺带撞出一个真 bug：人的步骤挂 agent 判据时，`--done` 永远判不过（没跑智能体 → 判「待判」→ 被当成不通过）。已按流程改：文档先写明「人为地记一步时 agent 判据算待判、不挡这一步、进闸门项」，测试在人的场景里补了这一半，再改代码。
