@@ -17,3 +17,11 @@ log:
   step: doc·审
   detail: AI 审查（同一模型）：清单里的条目都落到了文档里，用例都出自做过的真事→✓
   ok: true
+- at: 2026-09-11 17:18
+  step: test
+  detail: AI 执行：做完了 test 这一步：在 `apps/qtcloud-work/src/cli/tests/usecases.rs` 按五条用例写了一组测试（每条上方标出处
+  ok: true
+- at: 2026-09-11 17:18
+  step: test·审
+  detail: AI 审查（同一模型）：每条用例都有测试，没有恒绿的空壳→✓
+  ok: true

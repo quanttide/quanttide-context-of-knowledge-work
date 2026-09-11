@@ -5,10 +5,12 @@
 - ✓ 2026-09-11 16:35　outline　AI 执行：已把这份规格要写的动作、字段、判据、用例逐条列进报告 `data/context/qtcloud-work/artifacts/report/lab-to-pl
 - ✓ 2026-09-11 16:38　doc　AI 执行：三部分文档已按清单重写，落在 `apps/qtcloud-work/src/cli/docs/`：`user-guide/index.md`（怎么用，含五条做过
 - ✓ 2026-09-11 16:39　doc·审　AI 审查（同一模型）：清单里的条目都落到了文档里，用例都出自做过的真事→✓
+- ✓ 2026-09-11 17:18　test　AI 执行：做完了 test 这一步：在 `apps/qtcloud-work/src/cli/tests/usecases.rs` 按五条用例写了一组测试（每条上方标出处
+- ✓ 2026-09-11 17:18　test·审　AI 审查（同一模型）：每条用例都有测试，没有恒绿的空壳→✓
 
 ## 闸门项
 
-- ⧗ 文档定稿（内容取舍只能人拍）（留给人 / 待判）
+- （暂无）
 
 ## 清单
 
@@ -157,3 +159,50 @@ schema 约束（`workflow.py load`，不认识的字段报错）：`rule` 必须
 可信性问题：`user-guide` 用例段开头注明「流水出自实验室的 `kg`，命令名按平台侧写法给出，实现后要对齐着再走一遍」；`dev-guide` 的「分层」改标「拟建」，写明现在只有 `main.rs`。
 
 软缺口里顺手改掉的：`task --new` 撞名就挡、不覆盖（写进接口参考）。留到下一轮：动作命名混用（`--next` / `--done` / `--journal` 一个副词一个名词）、颜色约定。
+
+## 对账
+
+### 测试
+
+测试落在 `apps/qtcloud-work/src/cli/tests/usecases.rs`，跑的是编出来的 `qtcloud-work` 可执行文件，用临时工作区与临时数据仓，不碰真仓库；交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型。五条用例各一组测试，每组上面一行写出来处：
+
+| 出处 | 测试 | 验什么 |
+| :-- | :-- | :-- |
+| `// 用例：一` | `usecase_1_start_task_and_take_one_step` | `task --new` 备好任务、报告、日志；`--next` 交给 `pi`，核过 rule 判据后流水记一笔 |
+| `// 用例：二` | `usecase_2_three_kinds_of_criteria` | 一步挂 rule / agent / human 三类判据，rule 与 agent 过才算过，human 原样进闸门 |
+| `// 用例：三` | `usecase_3_compare_course_profiles` | 三步都交给 AI；运行上下文随任务记着，后续命令不写 `--workflows` 也认得 |
+| `// 用例：四` | `usecase_4_context_into_material` | 五步走完，粗加工落到 `materials/<分类>/index.md`，两道 human 闸门进报告 |
+| `// 用例：五` | `usecase_5_human_steps_recorded_by_hand` | human 步骤不抢着做，`--done` 记一笔，`--note` 原话进流水 |
+
+### 双向对账
+
+对账脚本在 `apps/qtcloud-work/src/cli/scripts/validate-usecases.sh`：抓文档里 `## 用例 一、…` 的用例号与测试里 `// 用例：一` 的出处号，两边集合必须相等。
+
+```
+$ cd apps/qtcloud-work/src/cli && sh scripts/validate-usecases.sh
+文档里的用例号：二 三 四 五 一
+测试里的出处号：二 三 四 五 一
+对账过得去：两边名字相等，共 5 条
+exit=0
+```
+
+### 一次红的记录
+
+实现还没写（`main.rs` 只有 `health`），此时 `cargo test` 必须红。跑：
+
+```
+$ cd apps/qtcloud-work/src/cli && cargo test --quiet
+task --new 没跑通: exit=Some(2)
+error: unexpected argument '--root' found
+Usage: qtcloud-work [OPTIONS] <COMMAND>
+...
+failures:
+    usecase_1_start_task_and_take_one_step
+    usecase_2_three_kinds_of_criteria
+    usecase_3_compare_course_profiles
+    usecase_4_context_into_material
+    usecase_5_human_steps_recorded_by_hand
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+五条全红，红的根由是命令面还没接上——不是测试写错。等 `code` 步把实现补齐，再逐条转绿。
