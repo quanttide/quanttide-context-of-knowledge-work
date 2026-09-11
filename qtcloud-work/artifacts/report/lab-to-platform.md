@@ -242,3 +242,22 @@ $ cargo test --quiet                                            # 6 条场景全
 按命令行评审方案的默认值一条补的：不给 `--data` 时取**当前目录下的 `data/`**——开发环境的默认数据仓，用哪个印到标准错误（结果落在哪不靠猜）；`data/` 进 `.gitignore`，不进版本库。
 
 三处同步改：`docs/api-references/index.md` 与 `docs/user-guide/index.md` 写明默认，`tests/task_start.rs` 补同类场景的一半（不写 `--data` 时任务落进默认数据仓、并印出用的是哪个），`src/main.rs` 的 `data_dir` 落实。改完跑：`cargo test` 全绿（七个目标）、`cargo fmt --check` 绿、`cargo clippy --all-targets -- -D warnings` 绿、`sh scripts/validate-usecases.sh` 过。
+
+## 模块重整
+
+按「动作与它操作的对象住同一个模块」重排源码，一层一件事：
+
+```
+src/
+├── main.rs      入口：只有十四行——声明模块、把命令行交给 cli
+├── cli.rs       入口模块：clap 定义、定位三处位置、调动作层、打印结果（原 main.rs 的内容）
+├── outcome.rs   动作结果：Result 与 JSON 化（原 report.rs 的类型层）
+├── artifact.rs  资产表：二十格与落点规则（原 assets.rs）
+├── audit.rs     判据的机械核对：四种 rule 判法（原 checks.rs）
+├── catalog.rs   目录层 + 按名找文档的动作
+├── material.rs  材料字段 + 列材料的动作
+├── workflow.rs  工作流 schema + 工作流的五个动作
+└── task.rs      任务：状态、走一步、流水、报告与日志（吸收 records.rs）+ 任务的六个动作
+```
+
+`report.rs` 与 `records.rs` 不再存在：结果类型独立成 `outcome.rs`（动作层不依赖入口模块），各动作归到它操作的对象旁，记录的段位与骨架并进任务模块。改完四道门禁全绿：`cargo test` 七目标、`cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`sh scripts/validate-usecases.sh`。
