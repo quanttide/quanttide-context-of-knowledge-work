@@ -14,11 +14,22 @@ log:
   step: parity
   detail: 第二轮：搬了 task 的数据层与非 AI 动作（16 条测试，钉住 done() 真值表）；尺子默认清单扩大到每件任务的状态，21 条全一致
   ok: true
+- at: 2026-09-12 02:06
+  step: handover
+  detail: 撤掉 lib/cli 的子进程那层（换 CoreRunner，走 lib/core/dispatch）；规则引擎（audit.dart）与走一步（task_run.dart）搬进来；平台边界单列 lib/core/host；过时说明改准。创始人此前已授权本轮完整执行
+  ok: true
+- at: 2026-09-12 02:07
+  step: conclude
+  detail: 三行结论 + 三件拿不准的已写进报告；命令面还剩 find/catalog/audit/material 四件工作区命令
+  ok: true
 gates:
 - 创始人看这份清单，确认搬运的范围（哪些先搬）
 - 命令面逐条都有对应物与状态，没有一个「（待查）」；缺口的说法与尺子的结论对得上
 - 行为逐条对上（含报错文字与边界：缺字段、多字段、取值不对各报什么）；测试里有与命令行同义的用例，不是自说自话
 - 每一条不一致都查清了来路（行为差异还是序列化差异），改的是 studio 不是尺子；没搬的逐条记在看板上
+- 创始人确认可以不再依赖命令行（studio 自己能把活干完）
+- 界面每一处显示都能指到 studio 自己的实现；撤掉的说明没有留下悬空的引用
+- 三行说得清搬到了哪、能不能自己干完、还差什么；拿不准的单列，不混在结论里
 products: {}
 root: /home/iguo/repos/quanttide/domains/quanttide-work
 data: data/context/qtcloud-work

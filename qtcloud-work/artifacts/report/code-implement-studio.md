@@ -84,3 +84,27 @@
 - `help`
 
 改的一直是 studio 这一侧，尺子只加过清单，没改过判断。
+
+## 交接
+
+界面不再依赖命令行：
+
+- **撤掉子进程那层**：`lib/cli/runner.dart` 里原来的 `ProcessRunner` 没了，默认换成 `CoreRunner`——同一份命令面直接在 studio 自己这套实现（`lib/core/dispatch.dart`）上跑。`lib/cli` 里再没有 `Process.run`（机器判据过）。
+- **命令面抽出来共用**：`lib/core/dispatch.dart` 一处实现，`bin/qtcloud.dart`（命令行入口）与界面（`lib/cli/`）都走它。
+- **规则引擎与走一步搬进来了**：`lib/core/audit.dart`（`path` / `absent` / `file+contains` / `run` 四种判法）、`lib/core/task_run.dart`（`--next` / `--done` 的全过程：拼给 AI 的话、跑 pi、判 `agent` 判据、记 `·审` / `·判` 流水、写闸门项）、`lib/core/health.dart` 那类探活走 `lib/core/host/`。
+- **平台边界单列一层**：`lib/core/host/`——起 `pi`、跑 `sh`、走 HTTP 三件事都在这里，桌面与移动用真的，网页版如实报「起不了子进程」。这样 `lib/core` 其余部分与平台无关。
+- **过时的说明撤了**：界面与 `doc/` 里那几处「命令行还没给……」改成实际情况——判据逐条文字与定义原文都在定义文件里，界面这一层只显示条数与位置（命令行也一样）。
+
+留着的两处与命令行无关，是界面自己的事：对话这一路还没接；判据逐条文字与定义原文在界面上还没展开。
+
+## 结论
+
+搬完的是定义侧与执行侧：`workflow` 六条命令、`help`、`task` 的数据层与非 AI 动作，加上规则引擎（四种判法）与走一步（`--next` / `--done`，含交给 `pi` 跑与 AI 判据）。
+现在 studio 自己能干完界面这一层的活：列任务、看状态、走一步、记一步、记日志、看流程、核对定义、探活，全程不起子进程。
+还差命令面里四件工作区命令（`find` / `catalog` / `audit` / `material`）——界面用不到它们，是命令行那边的能力。
+
+仍拿不准的：
+
+- 两边长期双实现怎么防漂：现在靠同一套用例加一把尺子（`scripts/parity.sh`）；「改行为先改哪边」还没定规矩
+- 界面要不要用比信封更细的 API（比如直接拿定义里的判据逐条文字、定义原文）——那会让界面与命令行不再是同一个面
+- `find` / `catalog` / `audit` / `material` 要不要也搬：界面用不到，但「studio 能自己把活干完」这句话会打折
