@@ -7,10 +7,11 @@
 - ✓ 2026-09-11 16:39　doc·审　AI 审查（同一模型）：清单里的条目都落到了文档里，用例都出自做过的真事→✓
 - ✓ 2026-09-11 17:18　test　AI 执行：做完了 test 这一步：在 `apps/qtcloud-work/src/cli/tests/usecases.rs` 按五条用例写了一组测试（每条上方标出处
 - ✓ 2026-09-11 17:18　test·审　AI 审查（同一模型）：每条用例都有测试，没有恒绿的空壳→✓
+- ✓ 2026-09-11 17:32　code　AI 执行：一句话：把实验室那套本地知识工作做法用 Rust 在平台侧实现出来，让六条用例测试全绿，并已记入报告、提交推送。
 
 ## 闸门项
 
-- （暂无）
+- ⧗ 代码验收（能不能上平台）（留给人 / 待判）
 
 ## 清单
 
@@ -235,3 +236,9 @@ $ cargo test --quiet                                            # 6 条场景全
 ```
 
 除测试覆盖的这条主线外，接口参考里 `find` / `catalog` / `audit` / `material` / `workflow` 各族命令也已按文档接上，并拿本工作区跑过一遍（目录、材料、审计、任务列表都出得来）。没接的部分照旧另起一轮：窗口、provider 接口层；`--dry-run` 只做了写入动作「不落盘」的提示，细粒度预演留给下一轮。
+
+## 收尾：数据仓默认与 gitignore
+
+按命令行评审方案的默认值一条补的：不给 `--data` 时取**当前目录下的 `data/`**——开发环境的默认数据仓，用哪个印到标准错误（结果落在哪不靠猜）；`data/` 进 `.gitignore`，不进版本库。
+
+三处同步改：`docs/api-references/index.md` 与 `docs/user-guide/index.md` 写明默认，`tests/task_start.rs` 补同类场景的一半（不写 `--data` 时任务落进默认数据仓、并印出用的是哪个），`src/main.rs` 的 `data_dir` 落实。改完跑：`cargo test` 全绿（七个目标）、`cargo fmt --check` 绿、`cargo clippy --all-targets -- -D warnings` 绿、`sh scripts/validate-usecases.sh` 过。
