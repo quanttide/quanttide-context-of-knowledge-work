@@ -164,15 +164,18 @@ schema 约束（`workflow.py load`，不认识的字段报错）：`rule` 必须
 
 ### 测试
 
-测试落在 `apps/qtcloud-work/src/cli/tests/usecases.rs`，跑的是编出来的 `qtcloud-work` 可执行文件，用临时工作区与临时数据仓，不碰真仓库；交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型。五条用例各一组测试，每组上面一行写出来处：
+测试落在 `apps/qtcloud-work/src/cli/tests/usecases.rs`，跑的是编出来的 `qtcloud-work` 可执行文件，用临时工作区与临时数据仓（数据仓与工作流目录故意分开，好让「运行上下文随任务记着」这条真被验到），不碰真仓库；交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型。
 
-| 出处 | 测试 | 验什么 |
+按场景命名与分解：一个测试一个场景，同类场景合在一个测试里（正例与它的负例同测，免得负例在实现缺席时单独变绿）。每个测试上面一行写出来处：
+
+| 出处 | 测试 | 场景 |
 | :-- | :-- | :-- |
-| `// 用例：一` | `usecase_1_start_task_and_take_one_step` | `task --new` 备好任务、报告、日志；`--next` 交给 `pi`，核过 rule 判据后流水记一笔 |
-| `// 用例：二` | `usecase_2_three_kinds_of_criteria` | 一步挂 rule / agent / human 三类判据，rule 与 agent 过才算过，human 原样进闸门 |
-| `// 用例：三` | `usecase_3_compare_course_profiles` | 三步都交给 AI；运行上下文随任务记着，后续命令不写 `--workflows` 也认得 |
-| `// 用例：四` | `usecase_4_context_into_material` | 五步走完，粗加工落到 `materials/<分类>/index.md`，两道 human 闸门进报告 |
-| `// 用例：五` | `usecase_5_human_steps_recorded_by_hand` | human 步骤不抢着做，`--done` 记一笔，`--note` 原话进流水 |
+| `// 用例：一` | `scenario_start_task_lays_down_files_and_context` | 起一件任务：任务、报告、日志三样落盘，运行上下文记进任务文件；工作流不在就挡 |
+| `// 用例：一` | `scenario_take_one_agent_step_through_pi` | 走一步（agent）：交给 `pi`、核 rule 判据、记一笔、写报告；`pi` 失败那一次不算过 |
+| `// 用例：二` | `scenario_one_step_with_three_kinds_of_criteria` | 一步挂三类判据：rule 当场核、agent 照说明审、human 原样进闸门 |
+| `// 用例：三` | `scenario_three_ai_steps_with_recorded_context` | 三步依次走完；不写 `--workflows` 也认得出定义在哪 |
+| `// 用例：四` | `scenario_context_entries_into_material` | 粗加工落到 `materials/<分类>/index.md`，两道 human 闸门进报告 |
+| `// 用例：五` | `scenario_human_step_recorded_by_hand` | human 步骤不抢着做，`--done` 记一笔，`--note` 原话进流水 |
 
 ### 双向对账
 
@@ -188,7 +191,7 @@ exit=0
 
 ### 一次红的记录
 
-实现还没写（`main.rs` 只有 `health`），此时 `cargo test` 必须红。跑：
+实现还没写（`main.rs` 只有 `health`），此时 `cargo test` 必须红——六条测试全红，不是空壳。跑：
 
 ```
 $ cd apps/qtcloud-work/src/cli && cargo test --quiet
@@ -197,9 +200,12 @@ error: unexpected argument '--root' found
 Usage: qtcloud-work [OPTIONS] <COMMAND>
 ...
 failures:
-    usecase_1_start_task_and_take_one_step
-    usecase_2_three_kinds_of_criteria
-    usecase_3_compare_course_profiles
+    scenario_context_entries_into_material
+    scenario_human_step_recorded_by_hand
+    scenario_one_step_with_three_kinds_of_criteria
+    scenario_start_task_lays_down_files_and_context
+    scenario_take_one_agent_step_through_pi
+    scenario_three_ai_steps_with_recorded_context
     usecase_4_context_into_material
     usecase_5_human_steps_recorded_by_hand
 test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out
