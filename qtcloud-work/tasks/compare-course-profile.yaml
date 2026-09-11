@@ -1,6 +1,9 @@
 name: compare-course-profile
 start: 2026-09-10 22:31
 workflow: compare-course-profile
+root: /home/iguo/repos/quanttide/domains/quanttide-work
+data: data/context/qtcloud-work
+workflows: data/profile/iGuo/workflows
 log:
 - at: 2026-09-10 22:32
   step: locate

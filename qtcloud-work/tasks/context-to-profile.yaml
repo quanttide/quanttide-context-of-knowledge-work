@@ -1,6 +1,9 @@
 name: context-to-profile
 start: 2026-09-11 15:46
 workflow: context-to-profile
+root: /home/iguo/repos/quanttide/domains/quanttide-work
+data: data/context/qtcloud-work
+workflows: data/profile/iGuo/workflows
 log:
 - at: 2026-09-11 15:47
   step: pull
