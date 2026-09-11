@@ -7,10 +7,11 @@
 - ✓ 2026-09-11 16:39　doc·审　AI 审查（同一模型）：清单里的条目都落到了文档里，用例都出自做过的真事→✓
 - ✓ 2026-09-11 17:18　test　AI 执行：做完了 test 这一步：在 `apps/qtcloud-work/src/cli/tests/usecases.rs` 按五条用例写了一组测试（每条上方标出处
 - ✓ 2026-09-11 17:18　test·审　AI 审查（同一模型）：每条用例都有测试，没有恒绿的空壳→✓
+- ✓ 2026-09-11 17:32　code　AI 执行：一句话：把实验室那套本地知识工作做法用 Rust 在平台侧实现出来，让六条用例测试全绿，并已记入报告、提交推送。
 
 ## 闸门项
 
-- （暂无）
+- ⧗ 代码验收（能不能上平台）（留给人 / 待判）
 
 ## 清单
 
@@ -212,3 +213,59 @@ test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 五条全红，红的根由是命令面还没接上——不是测试写错。等 `code` 步把实现补齐，再逐条转绿。
+
+## 开发代码
+
+实现落在 `apps/qtcloud-work/src/cli/src/`，照开发指南「拟建」那层骨架一层一件：`main.rs`（入口，clap 定义 + 位置解析 + 打印）、`report.rs`（动作结果层 `Result`）、`workflow.rs`（定义与严格 schema）、`task.rs`（任务、走一步、流水、报告、日志）、`checks.rs`（rule 四判法）、`records.rs`（段位与骨架）、`assets.rs`（二十格）、`catalog.rs`（名字索引）、`material.rs`（四字段）。YAML 读写补了 `serde_yaml`（0.9，离线仓库里有）。provider 那条轴没动，`health` 仍在。
+
+逐条转绿（`cargo test`，六条场景测试）：
+
+1. `start_task_lays_down_files_and_context`（用例 一）——第一次编译通过即绿：任务文件按 `name / start / workflow / root / data / workflows / log` 顺序落盘，报告与日志用记录层的模板备好，工作流不在时挡。✓
+2. `human_step_recorded_by_hand`（用例 五）——即绿：`--done` 走 `auto=False`，照常跑 rule 判据、`--note` 原话进流水，human 判据只进闸门。✓
+3. `take_one_agent_step_through_pi`（用例 一）——先红：夹具的 `run_recorded` 硬编码 `stub=false`，把 `pi` 桩关在 PATH 外，这一步落到真模型上，模型把「问候.md」写进了数据仓，rule 判据落空。这不是实现写错——报告「对账」一节写明「交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型」，夹具没兑现这句话。只把这一处接线改正（`run(false)` → `run(true)`，用例、断言与其余测试一字未动），依赖 `pi` 的四条场景才回得来。改正后：交给 `pi` → 核 rule → 记一笔 → 写报告；`pi` 没跑成那一次流水留 `ok: false`，这一步不算过。✓
+4. `one_step_with_three_kinds_of_criteria`（用例 二）——先红：`agent` 判据收到的审查回话是桩的一句「通过」，没有「1. 通过 — …」那行，照死解析会判「待判」，于是一步算不过。改判读：先认「序号. …」那行，认不出再看整段里明说「通过 / 不通过」，都不认才「待判」。✓
+5. `three_ai_steps_with_recorded_context`（用例 三）——即绿：三步依次走，后续命令只给 `--data`，`root` 与 `workflows` 从任务里记的上下文取。✓
+6. `context_entries_into_material`（用例 四）——先红：五步走完，报告「闸门项」只剩最后一步的「创始人点头」，「分类裁决」被盖掉；用例要的是两道闸门都挂着。改报告回写：闸门项走一步累一步，后面的步骤只添不盖。✓
+
+交付前的检查：
+
+```text
+$ cd apps/qtcloud-work/src/cli && cargo clippy --all-targets   # 0 warning
+$ rustfmt --edition 2024 --check src/*.rs                       # clean
+$ cargo test --quiet                                            # 6 条场景全绿
+```
+
+除测试覆盖的这条主线外，接口参考里 `find` / `catalog` / `audit` / `material` / `workflow` 各族命令也已按文档接上，并拿本工作区跑过一遍（目录、材料、审计、任务列表都出得来）。没接的部分照旧另起一轮：窗口、provider 接口层；`--dry-run` 只做了写入动作「不落盘」的提示，细粒度预演留给下一轮。
+
+## 收尾：数据仓默认与 gitignore
+
+按命令行评审方案的默认值一条补的：不给 `--data` 时取**当前目录下的 `data/`**——开发环境的默认数据仓，用哪个印到标准错误（结果落在哪不靠猜）；`data/` 进 `.gitignore`，不进版本库。
+
+三处同步改：`docs/api-references/index.md` 与 `docs/user-guide/index.md` 写明默认，`tests/task_start.rs` 补同类场景的一半（不写 `--data` 时任务落进默认数据仓、并印出用的是哪个），`src/main.rs` 的 `data_dir` 落实。改完跑：`cargo test` 全绿（七个目标）、`cargo fmt --check` 绿、`cargo clippy --all-targets -- -D warnings` 绿、`sh scripts/validate-usecases.sh` 过。
+
+## 模块重整
+
+按「动作与它操作的对象住同一个模块」重排源码，一层一件事：
+
+```
+src/
+├── main.rs      入口：只有十四行——声明模块、把命令行交给 cli
+├── cli.rs       入口模块：clap 定义、定位三处位置、调动作层、打印结果（原 main.rs 的内容）
+├── outcome.rs   动作结果：Result 与 JSON 化（原 report.rs 的类型层）
+├── artifact.rs  资产表：二十格与落点规则（原 assets.rs）
+├── audit.rs     判据的机械核对：四种 rule 判法（原 checks.rs）
+├── catalog.rs   目录层 + 按名找文档的动作
+├── material.rs  材料字段 + 列材料的动作
+├── workflow.rs  工作流 schema + 工作流的五个动作
+└── task.rs      任务：状态、走一步、流水、报告与日志（吸收 records.rs）+ 任务的六个动作
+```
+
+`report.rs` 与 `records.rs` 不再存在：结果类型独立成 `outcome.rs`（动作层不依赖入口模块），各动作归到它操作的对象旁，记录的段位与骨架并进任务模块。改完四道门禁全绿：`cargo test` 七目标、`cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`sh scripts/validate-usecases.sh`。
+
+## 拿真事试了一遍（界面评审）
+
+用平台侧的 `qtcloud-work` 跑了一条真活：评审 `data/materials/qtcloud-human-studio.png`（量潮人事「招聘筛选网关」的界面截图）。工作流写在开发数据仓 `data/workflows/review-ui-shot.yaml`，产物落在 `data/artifacts/report/review-ui-shot-v2.md`。
+
+第一版报告（按旧流程）是「清点 → 15 条并列评审 → 8 条建议 → 结论」，人的第一眼感受「信息混乱」没被体现。改后的流程按人读的顺序排：人先写一句「第一眼」→ 智能体清点（只清点不下判断）→ 一句主诊断＋至多五处证据（带图上坐标）→ 旁枝当附录 → 建议按影响排序并标影响面与代价 → 结论三行（是什么 / 问题在哪 / 先改什么）＋一句话复述与第一眼对照 → 人拍板。判据里加了机械的「小节顺序」核对（比较行号）。
+
+顺带撞出一个真 bug：人的步骤挂 agent 判据时，`--done` 永远判不过（没跑智能体 → 判「待判」→ 被当成不通过）。已按流程改：文档先写明「人为地记一步时 agent 判据算待判、不挡这一步、进闸门项」，测试在人的场景里补了这一半，再改代码。
