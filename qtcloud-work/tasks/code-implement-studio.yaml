@@ -1,0 +1,20 @@
+name: code-implement-studio
+start: 2026-09-12 01:58
+workflow: code-implement-studio
+log:
+- at: 2026-09-12 01:59
+  step: census
+  detail: 点货：命令面 4 组 18 条逐条对上 studio 侧；尺子跑通（一致 14 条、没搬 1 条 = task --list）；先搬执行侧、再搬工作区、health 最后
+  ok: true
+- at: 2026-09-12 01:59
+  step: port
+  detail: 搬了 help（导览）：lib/core/help.dart + bin 入口 + 五条测试；报错与列宽照抄命令行；门禁全绿
+  ok: true
+gates:
+- 创始人看这份清单，确认搬运的范围（哪些先搬）
+- 命令面逐条都有对应物与状态，没有一个「（待查）」；缺口的说法与尺子的结论对得上
+- 行为逐条对上（含报错文字与边界：缺字段、多字段、取值不对各报什么）；测试里有与命令行同义的用例，不是自说自话
+products: {}
+root: /home/iguo/repos/quanttide/domains/quanttide-work
+data: data/context/qtcloud-work
+workflows: data/profile/quanttide/workflows
