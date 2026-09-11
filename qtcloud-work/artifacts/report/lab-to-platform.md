@@ -164,7 +164,7 @@ schema 约束（`workflow.py load`，不认识的字段报错）：`rule` 必须
 
 ### 测试
 
-测试落在 `apps/qtcloud-work/src/cli/tests/usecases.rs`，跑的是编出来的 `qtcloud-work` 可执行文件，用临时工作区与临时数据仓（数据仓与工作流目录故意分开，好让「运行上下文随任务记着」这条真被验到），不碰真仓库；交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型。
+测试落在 `apps/qtcloud-work/src/cli/tests/`，一个场景一个文件，共用的夹具在 `tests/support/mod.rs`（临时工作区、数据仓、工作流目录、`pi` 桩与跑命令的壳）：`scenario_start_task.rs`、`scenario_agent_step.rs`、`scenario_three_kinds_of_criteria.rs`、`scenario_multi_step_context.rs`、`scenario_context_into_material.rs`、`scenario_human_step.rs`；加一个场景就加一个文件，文件之间不互相依赖。测试跑的是编出来的 `qtcloud-work` 可执行文件，用临时工作区与临时数据仓（数据仓与工作流目录故意分开，好让「运行上下文随任务记着」这条真被验到），不碰真仓库；交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型。
 
 按场景命名与分解：一个测试一个场景，同类场景合在一个测试里（正例与它的负例同测，免得负例在实现缺席时单独变绿）。每个测试上面一行写出来处：
 
