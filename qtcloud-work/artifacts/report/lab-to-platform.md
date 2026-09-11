@@ -212,3 +212,26 @@ test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 五条全红，红的根由是命令面还没接上——不是测试写错。等 `code` 步把实现补齐，再逐条转绿。
+
+## 开发代码
+
+实现落在 `apps/qtcloud-work/src/cli/src/`，照开发指南「拟建」那层骨架一层一件：`main.rs`（入口，clap 定义 + 位置解析 + 打印）、`report.rs`（动作结果层 `Result`）、`workflow.rs`（定义与严格 schema）、`task.rs`（任务、走一步、流水、报告、日志）、`checks.rs`（rule 四判法）、`records.rs`（段位与骨架）、`assets.rs`（二十格）、`catalog.rs`（名字索引）、`material.rs`（四字段）。YAML 读写补了 `serde_yaml`（0.9，离线仓库里有）。provider 那条轴没动，`health` 仍在。
+
+逐条转绿（`cargo test`，六条场景测试）：
+
+1. `start_task_lays_down_files_and_context`（用例 一）——第一次编译通过即绿：任务文件按 `name / start / workflow / root / data / workflows / log` 顺序落盘，报告与日志用记录层的模板备好，工作流不在时挡。✓
+2. `human_step_recorded_by_hand`（用例 五）——即绿：`--done` 走 `auto=False`，照常跑 rule 判据、`--note` 原话进流水，human 判据只进闸门。✓
+3. `take_one_agent_step_through_pi`（用例 一）——先红：夹具的 `run_recorded` 硬编码 `stub=false`，把 `pi` 桩关在 PATH 外，这一步落到真模型上，模型把「问候.md」写进了数据仓，rule 判据落空。这不是实现写错——报告「对账」一节写明「交给 `pi` 的地方用一个临时 `pi` 桩脚本顶替，免得测试依赖真模型」，夹具没兑现这句话。只把这一处接线改正（`run(false)` → `run(true)`，用例、断言与其余测试一字未动），依赖 `pi` 的四条场景才回得来。改正后：交给 `pi` → 核 rule → 记一笔 → 写报告；`pi` 没跑成那一次流水留 `ok: false`，这一步不算过。✓
+4. `one_step_with_three_kinds_of_criteria`（用例 二）——先红：`agent` 判据收到的审查回话是桩的一句「通过」，没有「1. 通过 — …」那行，照死解析会判「待判」，于是一步算不过。改判读：先认「序号. …」那行，认不出再看整段里明说「通过 / 不通过」，都不认才「待判」。✓
+5. `three_ai_steps_with_recorded_context`（用例 三）——即绿：三步依次走，后续命令只给 `--data`，`root` 与 `workflows` 从任务里记的上下文取。✓
+6. `context_entries_into_material`（用例 四）——先红：五步走完，报告「闸门项」只剩最后一步的「创始人点头」，「分类裁决」被盖掉；用例要的是两道闸门都挂着。改报告回写：闸门项走一步累一步，后面的步骤只添不盖。✓
+
+交付前的检查：
+
+```text
+$ cd apps/qtcloud-work/src/cli && cargo clippy --all-targets   # 0 warning
+$ rustfmt --edition 2024 --check src/*.rs                       # clean
+$ cargo test --quiet                                            # 6 条场景全绿
+```
+
+除测试覆盖的这条主线外，接口参考里 `find` / `catalog` / `audit` / `material` / `workflow` 各族命令也已按文档接上，并拿本工作区跑过一遍（目录、材料、审计、任务列表都出得来）。没接的部分照旧另起一轮：窗口、provider 接口层；`--dry-run` 只做了写入动作「不落盘」的提示，细粒度预演留给下一轮。
