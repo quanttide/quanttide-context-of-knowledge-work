@@ -30,7 +30,7 @@ gates:
 - 创始人确认可以不再依赖命令行（studio 自己能把活干完）
 - 界面每一处显示都能指到 studio 自己的实现；撤掉的说明没有留下悬空的引用
 - 三行说得清搬到了哪、能不能自己干完、还差什么；拿不准的单列，不混在结论里
-products: {}
+artifacts: {}
 root: /home/iguo/repos/quanttide/domains/quanttide-work
 data: data/context/qtcloud-work
 workflows: data/profile/quanttide/workflows

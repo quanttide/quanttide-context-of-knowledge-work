@@ -15,4 +15,4 @@ log:
   ok: false
 gates:
 - 版本号、CHANGELOG 条目、Cargo.toml 三处一致；条目里写清了这次变更，不是空条目
-products: {}
+artifacts: {}
