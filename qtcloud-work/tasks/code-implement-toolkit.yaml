@@ -42,7 +42,7 @@ gates:
 - 创始人确认可以合并：抽取这件事值不值得（多一层依赖换掉两份重复）
 - 两侧不再留同名模型（都指到 toolkit）；抽取过程中没有顺手改行为，尺子与两侧门禁都能证明
 - 三行说得清抽了什么、共用到什么程度、还差什么；拿不准的单列，不混在结论里
-products: {}
+artifacts: {}
 root: /home/iguo/repos/quanttide/domains/quanttide-work
 data: data/context/qtcloud-work
 workflows: data/profile/quanttide/workflows

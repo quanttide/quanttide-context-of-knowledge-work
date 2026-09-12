@@ -41,7 +41,7 @@ log:
 gates:
 - 拿不准的分类由创始人裁决
 - 每条都进了对应分类，写法平实，没有「不是…而是…」式表达
-products: {}
+artifacts: {}
 root: /home/iguo/repos/quanttide/domains/quanttide-work
 data: data/context/qtcloud-work
 workflows: data/profile/iGuo/workflows
