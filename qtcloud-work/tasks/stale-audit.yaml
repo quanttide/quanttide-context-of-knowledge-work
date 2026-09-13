@@ -1,0 +1,46 @@
+name: stale-audit
+start: 2026-09-13 11:46
+workflow: stale-audit
+log:
+- at: 2026-09-13 11:47
+  step: scan
+  detail: 'AI 执行：scan 完成：报告 `data/context/qtcloud-work/artifacts/report/stale-audit.md` 已建，列出 AI '
+  ok: true
+- at: 2026-09-13 11:48
+  step: scan·审
+  detail: AI 审查（同一模型）：每篇都点明真值源——源码 / 契约向量 / 命令 --help / 规范→✓
+  ok: true
+- at: 2026-09-13 11:48
+  step: scan·判
+  detail: 报告里有「抽查清单」一节
+  ok: true
+- at: 2026-09-13 11:49
+  step: run-checks
+  detail: AI 执行：我实跑了三项检查——工具箱文档示例与 13 份契约向量（均绿）、画廊 7 条工作流 yaml 的 `--list`/`--check`（5 过 2 红：code
+  ok: true
+- at: 2026-09-13 11:50
+  step: run-checks·审
+  detail: AI 审查（同一模型）：跑不了的检查说明原因，不留空过→✓
+  ok: true
+- at: 2026-09-13 11:50
+  step: run-checks·判
+  detail: 文档示例与测试对得上；两侧契约向量都过
+  ok: true
+- at: 2026-09-13 11:54
+  step: diff-truth
+  detail: AI 执行：diff-truth 完成：对 8 篇抽查资源逐条核源码、契约向量、实跑命令与清单，把 7 处落后项（`{{log}}` 误作产物落点、「包还没发」、parit
+  ok: true
+- at: 2026-09-13 11:56
+  step: diff-truth·审
+  detail: AI 审查（同一模型）：每条落后项都给出真值与改法→✗
+  ok: false
+- at: 2026-09-13 11:56
+  step: diff-truth·判
+  detail: 报告里有「落后清单」一节
+  ok: true
+gates:
+- 每条落后项都给出真值与改法
+artifacts: {}
+root: /home/iguo/repos/quanttide/domains/quanttide-work
+data: data/context/qtcloud-work
+workflows: data/profile/iGuo/workflows
