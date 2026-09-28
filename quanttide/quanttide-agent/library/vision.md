@@ -172,3 +172,130 @@ prompt + 生成结果 + 截图 + 多维评分 + 文本意见 + 修改建议 + �
 3. 自定义 JSON Schema + 规则引擎/评分器管线：把反馈变成可训练资产。
 
 如果你接下来要推进，我可以帮你直接设计一版“网页生成标注页面”的字段模板，以及对应的 JSON 存储结构和 System 1 / System 2 流程。
+
+--
+
+没有完全现成且开箱即用的成品 Schema，但有一套非常成熟的工业级标准范式可以直接套用。 针对“AI 生成网页 + 视觉反馈”场景，我为你设计了一套可直接落地的 JSON Schema 结构，并附上了对应的工程化落地工具链：
+
+核心 Schema 结构（可直接复制使用）
+
+{
+  ”$schema“: ”http://json-schema.org/draft-07/schema#“,
+  ”title“: ”AI 网页生成反馈记录“,
+  ”type“: ”object“,
+  ”required“: [”task_id“, ”prompt“, ”generated_html“, ”feedback“],
+  ”properties“: {
+    ”task_id“: {
+      ”type“: ”string“,
+      ”description“: ”任务唯一标识“
+    },
+    ”prompt“: {
+      ”type“: ”string“,
+      ”description“: ”用户输入的生成指令“
+    },
+    ”generated_html“: {
+      ”type“: ”string“,
+      ”description“: ”AI 生成的 HTML/CSS/JS 代码“
+    },
+    ”screenshot_url“: {
+      ”type“: ”string“,
+      ”format“: ”uri“,
+      ”description“: ”生成页面的渲染截图 URL“
+    },
+    ”feedback“: {
+      ”type“: ”object“,
+      ”required“: [”layout_score“, ”color_consistency“, ”comments“],
+      ”properties“: {
+        ”layout_score“: {
+          ”type“: ”integer“,
+          ”minimum“: 1,
+          ”maximum“: 5,
+          ”description“: ”布局合理性评分（1-5分）“
+        },
+        ”color_consistency“: {
+          ”type“: ”integer“,
+          ”minimum“: 1,
+          ”maximum“: 5,
+          ”description“: ”色彩一致性评分“
+        },
+        ”information_hierarchy“: {
+          ”type“: ”integer“,
+          ”minimum“: 1,
+          ”maximum“: 5,
+          ”description“: ”信息层级清晰度评分“
+        },
+        ”brand_fit“: {
+          ”type“: ”integer“,
+          ”minimum“: 1,
+          ”maximum“: 5,
+          ”description“: ”品牌/风格匹配度评分“
+        },
+        ”comments“: {
+          ”type“: ”string“,
+          ”description“: ”标注员的文本反馈“
+        },
+        ”revision_hint“: {
+          ”type“: ”string“,
+          ”description“: ”具体修改建议“
+        },
+        ”problem_regions“: {
+          ”type“: ”array“,
+          ”items“: {
+            ”type“: ”object“,
+            ”properties“: {
+              ”x“: { ”type“: ”number“ },
+              ”y“: { ”type“: ”number“ },
+              ”width“: { ”type“: ”number“ },
+              ”height“: { ”type“: ”number“ },
+              ”issue_type“: {
+                ”type“: ”string“,
+                ”enum“: [”layout“, ”color“, ”typography“, ”spacing“, ”other“]
+              }
+            }
+          },
+          ”description“: ”问题区域的坐标标注（可选）“
+        }
+      }
+    },
+    ”final_adopted_version“: {
+      ”type“: ”string“,
+      ”description“: ”最终采纳的 HTML 版本（用于训练）“
+    },
+    ”timestamp“: {
+      ”type“: ”string“,
+      ”format“: ”date-time“,
+      ”description“: ”记录时间“
+    }
+  }
+}
+
+现成工具链推荐
+
+虽然没有“一键生成”的 Schema，但你可以用以下工具快速搭建整套流程：
+
+1. react-jsonschema-form（RJSF） —— 最成熟的 Schema 驱动表单方案
+- 由 Mozilla 发起，社区活跃，支持 React 18
+- 只需定义一份 JSON Schema，即可自动生成完整表单 UI，支持嵌套、条件逻辑、实时校验
+- 可集成 Ant Design、Material UI、Chakra UI 等主题
+- 适合你用来快速搭建标注页面
+
+2. AJV（Another JSON Schema Validator） —— 服务端/客户端校验
+- 支持 JSON Schema Draft-07 / 2020-12 完整规范
+- 可同步/异步校验，适合在提交反馈时做数据清洗
+
+3. Label Studio —— 标注平台底座
+- 支持自定义标注模板，你可以把上面的 Schema 嵌入进去
+- 提供 REST API，方便与你的后端系统集成
+
+4. JsonCrack —— Schema 可视化调试
+- 把 JSON 数据转成交互式树状图，方便你和团队理解数据结构
+- 支持从 JSON 反向生成 TypeScript 接口和 JSON Schema
+
+落地建议
+
+1. 先用 RJSF + 上面的 Schema 快速搭一个标注页面原型，让标注员可以打分、写意见、标问题区域。
+2. 用 AJV 做提交前的数据校验，确保入库数据格式统一。
+3. 积累 500-1000 条反馈后，就可以开始训练专用的小模型（如 UI 质量评分器）。
+4. 后续可以扩展 Schema，比如加入“组件级反馈”“多轮迭代历史”等字段。
+
+如果你需要，我可以直接帮你生成 RJSF 的完整代码模板，或者帮你把这套 Schema 适配到 Label Studio 的自定义模板中。
