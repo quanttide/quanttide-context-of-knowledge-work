@@ -168,3 +168,106 @@
 安全   是否合规、有无风险   审计记录、异常处置台账   红灯案例可触发安全告警
 
 接下来你可以考虑：这个管理单元的数据模型怎么设计？尤其是红/绿/黄灯案例与规则库、判例库的关联关系，这直接决定了你的”第二大脑“能不能把每一次评审都转化为可复用的组织知识。需要我帮你梳理一下数据模型吗？
+
+收到——这一轮帮你把标注管理单元的数据模型梳理出来，重点解决你点名的核心问题：红/绿/黄灯评审如何和规则库、判例库打通，让每一次评审都沉淀为可复用、可追溯、可晋升的组织知识。整体按”域划分 → 核心枢纽表 → 关键关联 → 知识晋升链路 → 落地建议“来排。
+
+一、模型分层：六个数据域
+
+数据模型不是平铺一张表清单，而是分成六个域，其中评审决策域和知识沉淀域是”第二大脑“的核心，其余四域为它们提供被评审对象和上下文。
+数据域   职责   与执行层(Label Studio)关系
+监督主体域   谁在标注、什么资质、什么角色   本地主数据
+任务镜像域   任务、分配、流转轨迹   镜像/引用 LS
+质量度量域   准确率、一致性、预警   本地计算+引用
+评审决策域   红绿灯决策事件（枢纽）   被评审对象来自上两域
+知识沉淀域   规则库 / 判例库 / 规则补充库   评审产出，反哺执行配置
+血缘审计域   全链路留痕、归档文档   全量
+
+二、核心枢纽表：ReviewEvent（评审决策事件）
+
+这是整个模型的枢纽。所有知识沉淀都从这张表”长“出来，所以它的字段设计决定了闭环能不能成立。
+字段   说明
+review_id   主键
+target_type   被评审对象类型：annotation(标注结果) / task(任务) / report(决策报告) / config(规则配置)
+target_ref   对象引用（LS task_id / 标注ID / 报告ID）
+verdict   决策：P(通过) / D(Pending待决) / J(驳回)
+reviewer_id   评审人（监督主体）
+reason_text   判断理由（黄灯场景强制填写——隐性经验显性化的载体）
+cited_rule_ids   本次判断所依据的规则条款（M:N，见下）
+is_ai_generated   被评审内容是否 AI 生成（触发拒收权的前置标记）
+independent_judgment_present   下级是否附了独立判断（AI 场景合规校验）
+chain_prev_id   链式前驱（退回重判后重新提交，形成评审链）
+created_at   时间戳
+
+设计要点：reason_text + cited_rule_ids 这两个字段是知识沉淀的关键——没有它们，评审只是”判了“，无法”沉淀“。黄灯场景把 reason_text 设为必填，就是为了强制把”我为什么这么判“写下来。
+
+三、关键关联：三色灯如何各自”长“进三类库
+
+这是你点名要解决的部分。三种决策对应三种产出路径，用关系而非字段硬塞：
+
+红灯(Reject) → 负面规则库（M:N 支撑关系）
+- 一次驳回必然 cited_rule_ids 引用了已违反的负面条款（若条款不存在，则先新建条款再引用）。
+- 关系表 Rule_RejectionEvidence：一条负面规则 ← 可由多次驳回案例支撑（出现频次=该规则被验证的强度，用于规则置信度）；一次驳回 → 可违反多条规则。
+- 产出物：负面规则条目的命中计数被刷新，新边界则触发规则新建（状态=草稿）。
+
+绿灯(Pass) → 有效判例库（1:N + 引用）
+- 一次绿灯生成一条 Precedent（判例），记录”好在哪、判断逻辑、适用场景“。
+- 判例可 cited_rule_ids 引用它所体现的规则（正向示范）。
+- 判例还可被后续同类评审引用（referenced_by_review_id），实现”以判例为准绳“。
+
+黄灯(Pending) → 不直接产规则，经”处置分支“间接沉淀
+- Pending 本身只标状态（延续你上一轮的定稿：Pending 是纯状态，不预设处置）。
+- 通过 PendingResolution（处置分支表）承载后续动作，再决定沉淀去向：
+Pending 处置分支   是否产知识   沉淀去向
+经验裁决   是   写入 RuleSupplement（规则补充/草稿），理由取 reason_text
+退回重判   否（间接）   写 chain_prev_id 形成评审链，重判结果再走三色
+启动议事   是   议事结论 → 可直接晋升为正式 Rule
+
+四、知识晋升链路（黄灯经验 → 正式规则）
+
+规则库的价值在于”经验能升级成制度“，所以规则实体必须带版本和来源：
+
+Rule 关键字段：rule_id / type(负面|边界|流程) / polarity(正|负) / scope(适用场景) / statement(条文) / status(草稿|生效|废止) / version / derived_from(来源：某个 RuleSupplement / 议事记录 / 驳回案例) / superseded_by(被哪条取代)
+
+晋升链（用文字箭头表示，避免代码块）：
+
+黄灯 reason_text → RuleSupplement(status=草稿) → 定期复盘/议事通过 → Rule(status=生效, version+1) → 编译进 LabelingConfig → 下发 Label Studio 标注界面
+
+废止链：旧 Rule 被新规则覆盖 → status=废止、superseded_by=新 rule_id → 历史 ReviewEvent 仍指向旧 rule_id（保证当时的判断可复现，不被事后修改）。
+
+这条链是”第二大脑“能进化的根本：黄灯不是终点，而是规则的胚胎；生效规则又反向约束下一轮标注，形成闭环。
+
+五、规则反哺执行：LabelingConfig 桥接表
+
+监督层管规则，执行层(Label Studio)按规则跑标注，桥接靠这张表：
+
+LabelingConfig：config_id / ls_project_id / bound_rule_ids(本配置绑定的生效规则集) / xml_version / effective_from
+- 规则版本变更 → 生成新 xml_version 下发；
+- 每个任务镜像记录它标注时用的是哪个 config 版本，从而可追溯”这条标注是按哪一版规则做的“。
+
+六、整体关系图（文字版 ER）
+
+监督主体(User—RoleAssignment—Qualification)
+  └─ 评审人 ─→ ReviewEvent(枢纽) ←─ 被评审对象 ─ 任务镜像(Task—TaskTrace—AnnotationResult)
+                    │
+        verdict 分流 ├─ J ─→ Rule(负面) ←[M:N Rule_RejectionEvidence]← 多次驳回
+                    ├─ P ─→ Precedent(判例) ─[引用]→ Rule
+                    └─ D ─→ PendingResolution ┬─ 经验裁决 → RuleSupplement ─┐
+                                              ├─ 退回重判 → 回写 chain_prev ─┤
+                                              └─ 启动议事 →(晋升)──────────┘
+                                                                 │
+                                          RuleSupplement/议事 →晋升→ Rule(生效,版本化)
+                                                                 │
+                                          Rule →编译→ LabelingConfig →下发→ Label Studio
+质量域(QualityMetric: 准确率/Kappa/驳回率) ─引用→ Task，并可触发 ReviewEvent 自动立案
+血缘审计域(AuditLog/Document) ─贯穿→ 以上全部实体，记录操作人与时间
+
+七、几个落地提醒
+
+1. 评审链要可回放：chain_prev_id + 规则版本快照(cited_rule_ids 指向具体 rule_id 而非”当前规则“)，才能保证半年后能复现”当时为什么这么判“——这是审计与新人培训的命脉。
+2. 频次即置信度：Rule_RejectionEvidence 的命中计数不只是统计，可反哺规则权重——被反复触发的负面条款优先级应升高。
+3. 判例优先于规则：当黄灯案例尚未晋升为正式规则时，先以判例形式约束——判例是规则的”影子制度“，覆盖规则空白地带。
+4. AI 标记前置到提交环节：is_ai_generated 和 independent_judgment_present 应在提交时就校验，而不是等到评审才发现，否则拒收权变成事后补救。
+
+这套模型的核心就一句话：ReviewEvent 是知识生产的入口，三色灯是三条不同的加工线，规则库是带版本和血统的产物，LabelingConfig 把知识反灌回执行。
+
+如果继续往下走，最有价值的两步是：①把上面这套表落成可直接建库的 DDL（含索引与外键，PostgreSQL 版本）；②画出对接 Label Studio Webhook 后 ReviewEvent 的自动立案触发规则（哪些质量指标越线自动生黄灯案）。你想先要哪一个，我直接产出文件给你。
