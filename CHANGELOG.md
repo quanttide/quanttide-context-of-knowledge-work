@@ -14,6 +14,7 @@
 
 - 需求阶段三条并一：`quanttide-tech/qtconsult/` 的章程、手册两条并入教程一份
 - 量潮咨询两篇归位主体仓：澄清阶段进 `quanttide-tech/docs/tutorial/qtconsult/stages/clarify.md`，意图进 `quanttide-tech/data/intention/qtconsult/index.md`
+- 信用管理材料归位领域仓：`quanttide-credit/` 整包进 `domains/quanttide-credit/data/context/`
 
 ---
 
